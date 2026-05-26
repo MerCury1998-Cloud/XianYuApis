@@ -752,6 +752,7 @@ if __name__ == '__main__':
     print('\n=== 登录后 cookie ===')
     print(json.dumps(cookies_dict, ensure_ascii=False, indent=2))
 
+    # 测试 API 接口（取消注释即可使用）
     # cookies_str = r''
     # cookies = trans_cookies(cookies_str)
     # xianyu = XianyuApis(cookies, generate_device_id(cookies.get('unb', '')))
@@ -767,10 +768,10 @@ if __name__ == '__main__':
     # res = xianyu.get_item_info('1001160709960')
     # print(json.dumps(res, indent=4, ensure_ascii=False))
 
-    res = xianyu.public(
-        images_path=[r"D:\Desktop\logo.jpg"],
-        goods_desc="测试发布111222",
-        price=None,
-        ds={"choice": "一口价", "post_price": 0.01, "can_self_pickup": True}
-    )
-    print(json.dumps(res, indent=4, ensure_ascii=False))
+    # res = xianyu.public(
+    #     images_path=[r"D:\Desktop\logo.jpg"],
+    #     goods_desc="测试发布111222",
+    #     price=None,
+    #     ds={"choice": "一口价", "post_price": 0.01, "can_self_pickup": True}
+    # )
+    # print(json.dumps(res, indent=4, ensure_ascii=False))
