@@ -329,7 +329,13 @@ class XianyuApis:
         data = {
             'data': data_val,
         }
-        token = self.session.cookies['_m_h5_tk'].split('_')[0]
+        token = self.session.cookies.get('_m_h5_tk', '')
+        if not token:
+            for c in self.session.cookies:
+                if c.name == '_m_h5_tk':
+                    token = c.value
+                    break
+        token = token.split('_')[0]
         sign = generate_sign(params['t'], token, data_val)
         params['sign'] = sign
         response = self.session.post(self.login_url, params=params, headers=headers, data=data)
@@ -382,16 +388,26 @@ class XianyuApis:
         data = {
             'data': data_val,
         }
-        token = self.session.cookies['_m_h5_tk'].split('_')[0]
+        token = self.session.cookies.get('_m_h5_tk', '')
+        if not token:
+            # 如果 get 有冲突，尝试遍历
+            for c in self.session.cookies:
+                if c.name == '_m_h5_tk':
+                    token = c.value
+                    break
+        token = token.split('_')[0]
         sign = generate_sign(params['t'], token, data_val)
         params['sign'] = sign
         response = self.session.post(self.refresh_token_url, headers=headers, params=params, data=data)
-        for response_cookie_key in response.cookies:
-            if response_cookie_key in self.session.cookies:
-                for key in self.session.cookies:
-                    if key.name == response_cookie_key and key.domain == '' and key.path == '/':
-                        del self.session.cookies[key]
-                        break
+        # 清理重复的 _m_h5_tk cookie
+        seen = set()
+        cookies_to_del = []
+        for c in self.session.cookies:
+            if c.name in seen:
+                cookies_to_del.append(c)
+            seen.add(c.name)
+        for c in cookies_to_del:
+            del self.session.cookies[c.name]
         res_json = response.json()
         return res_json
 
