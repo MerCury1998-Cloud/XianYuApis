@@ -145,24 +145,7 @@ async def handle_message(self, message, websocket):
 1. 感谢 Star ⭐ 和 Follow，项目会持续更新
 2. 作者联系方式在主页，有问题随时联系
 3. 欢迎 PR 和 Issue，也欢迎关注作者其他项目
-4. 如果此项目对您有帮助，欢迎请作者喝一杯奶茶 ~~
-
-<div align="center">
-  <img src="https://github.com/cv-cat/Spider_XHS/blob/master/author/wx_pay.png" width="380px" alt="微信赞赏码">
-  <img src="https://github.com/cv-cat/Spider_XHS/blob/master/author/zfb_pay.jpg" width="380px" alt="支付宝收款码">
-</div>
-
 ---
-
-## Star 趋势
-
-<a href="https://www.star-history.com/#cv-cat/XianYuApis&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=cv-cat/XianYuApis&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=cv-cat/XianYuApis&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=cv-cat/XianYuApis&type=Date" />
-  </picture>
-</a>
 
 
 ## 🍔 交流群
@@ -171,8 +154,5 @@ async def handle_message(self, message, websocket):
 
 ps: 请加群14、15，人满或者过期 issue | wx 提醒
 
-![group14](https://github.com/user-attachments/assets/736fa3a2-1e7d-4681-af5e-c15dbefde1cd)
-
-![group15](https://github.com/user-attachments/assets/dbc24f80-4307-46d7-ae83-98d694a306b6)
 
 

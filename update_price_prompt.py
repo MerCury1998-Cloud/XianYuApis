@@ -6,10 +6,90 @@ update_price_prompt.py
 
 import re
 import os
+import json
+import hashlib
+import requests
 
 # 价格表路径
 PRICE_FILE = r'C:\Users\Administrator\WorkBuddy\2026-05-25-10-56-30\Switch代理价格表.md'
 LIVE_FILE = os.path.join(os.path.dirname(__file__), 'goofish_live.py')
+STATE_FILE = os.path.join(os.path.dirname(__file__), '.price_state.json')
+FEISHU_WEBHOOK = 'https://open.feishu.cn/open-apis/bot/v2/hook/52fa6601-ac5b-4a04-9a34-0ca1033e3237'
+
+
+def send_feishu(title, content):
+    """发送飞书通知"""
+    try:
+        session = requests.Session()
+        session.trust_env = False
+        resp = session.post(FEISHU_WEBHOOK, json={
+            "msg_type": "text",
+            "content": {"text": f"{title}\n{content}"}
+        }, timeout=10)
+        if resp.status_code == 200:
+            print(f'✅ 飞书通知已发送')
+        else:
+            print(f'⚠️ 飞书通知返回异常: {resp.status_code}')
+    except Exception as e:
+        print(f'⚠️ 飞书通知失败: {e}')
+
+
+def load_state():
+    """加载上次价格状态"""
+    if os.path.exists(STATE_FILE):
+        with open(STATE_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+
+def save_state(state):
+    """保存当前价格状态"""
+    with open(STATE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+
+
+def compute_price_hash(md_text):
+    """计算价格表内容的 MD5 哈希"""
+    return hashlib.md5(md_text.encode('utf-8')).hexdigest()
+
+
+def check_and_notify(md_text):
+    """检查价格是否有变动，有变动则飞书通知并返回 True"""
+    state = load_state()
+    new_hash = compute_price_hash(md_text)
+    old_hash = state.get('hash')
+    if old_hash == new_hash:
+        print('✅ 价格无变动，跳过通知')
+        return False
+    if old_hash:
+        changed_items = detect_changes(state.get('sections', []), md_text)
+        if changed_items:
+            msg = '📦 价格有变动：\n' + '\n'.join(changed_items)
+        else:
+            msg = '📦 价格表已更新（非价格项变动）'
+        send_feishu('💰 价格表更新提醒', msg)
+    save_state({'hash': new_hash, 'sections': md_text})
+    return True
+
+
+def detect_changes(old_md, new_md):
+    """对比新旧价格表，返回变动的项目列表"""
+    import difflib
+    diff = list(difflib.unified_diff(
+        old_md.splitlines(keepends=True),
+        new_md.splitlines(keepends=True),
+        fromfile='旧价格表', tofile='新价格表'
+    ))
+    changed = []
+    for line in diff:
+        if line.startswith('+') and not line.startswith('+++') and len(line) > 2:
+            changed.append(line[1:].strip())
+        elif line.startswith('-') and not line.startswith('---') and len(line) > 2:
+            changed.append('删除: ' + line[1:].strip())
+    return changed[:20]  # 最多20条
+
+
+
 
 
 def parse_price_table(md_text):
@@ -65,9 +145,9 @@ def parse_price_table(md_text):
 def build_price_prompt(sections):
     """将解析后的价格数据格式化为自然语言价格说明"""
     lines = [
-        '【Switch 游戏机闲鱼自动客服 - 价格信息】',
+        '【Switch 游戏机价格表】',
         '',
-        '你是Switch游戏机卖家的闲鱼AI客服。回答客户问题时，请参考以下价格信息：',
+        '你是闲鱼客服，我们这里主要经营Switch游戏机。回答客户问题时，请参考以下价格：',
         '',
     ]
 
@@ -77,7 +157,7 @@ def build_price_prompt(sections):
         lines.append(f'■ {sec["title"]}')
         for row in sec['rows']:
             if 'retail_price' in row:
-                lines.append(f'  - {row["config"]}：拿货价{row["price"]}元，建议零售价{row["retail_price"]}元')
+                lines.append(f'  - {row["config"]}：{row["retail_price"]}元')
             else:
                 lines.append(f'  - {row["config"]}：{row["price"]}元')
         lines.append('')
@@ -89,11 +169,16 @@ def build_price_prompt(sections):
         '- 闲鱼禁止词：破解、动森、动物之森、生化危机、微信等，回复时避免使用这些词汇',
         '',
         '回答要求：',
-        '- 用亲切、热情的语气回答客户问题',
-        '- 回答要简短直接',
-        '- 如果客户询价，根据上面的价格表给出建议零售价',
+        '- 用朋友聊天的语气，随意简短，不要过度热情假客气',
+        '- 回答要简短直接，不要啰嗦',
+        '- 如果客户询价，根据上面的价格表直接报价',
         '- 如果客户问及配置差异，如实介绍',
-        '- 不要使用表情符号',
+        '- 如果客人问"机器哪年的"、"哪年的"、"年份"这种泛泛的问题，只准说"OLED款是25年的哦~"，禁止多说任何其他内容',
+        '- 如果客人明确问"普通款哪年的"/"普通版哪年的"，回答"普通款是19年的哦"',
+        '- 如果客人明确问"续航款哪年的"/"续航版哪年的"，回答"续航款是22/23年的哦"',
+        '- 如果客人说转人工、人工之类的，回复"好的，稍等帮您联系~"然后发飞书通知我',
+        '- 用俏皮的语气聊天，可以加颜文字和emoji，比如喵~ ^_^ 之类的',
+        '- 不用刻意避开表情符号和淘宝味称呼',
     ]
 
     return '\n'.join(lines)
@@ -142,6 +227,9 @@ def main():
     print(f'📖 读取价格表: {PRICE_FILE}')
     with open(PRICE_FILE, 'r', encoding='utf-8') as f:
         md_text = f.read()
+
+    # 检查价格是否有变动，有变动则飞书通知
+    check_and_notify(md_text)
 
     sections = parse_price_table(md_text)
     print(f'✅ 解析到 {len(sections)} 个价格分类')

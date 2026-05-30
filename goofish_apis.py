@@ -68,6 +68,7 @@ def _gen_tfstk(timeout: int = 15) -> str:
 def build_initial_cookies() -> dict:
     """纯 HTTP 获取闲鱼初始 cookie（不含登录态）"""
     s = requests.Session()
+    s.trust_env = False
     s.headers.update({'User-Agent': UA})
 
     s.get('https://log.mmstat.com/eg.js', timeout=10)
@@ -108,6 +109,8 @@ def qrcode_login(poll_interval: float = 3.0, timeout: float = 120.0,
     """
     # ── 1. 基础 cookie ──
     s = build_initial_cookies()
+    s.trust_env = False
+    s.headers.update({'User-Agent': UA, 'Accept-Language': 'zh-CN,zh;q=0.9'})
 
     cna = (s.cookies.get('cna', domain='.goofish.com')
            or s.cookies.get('cna', domain='.mmstat.com') or '')
@@ -288,6 +291,7 @@ class XianyuApis:
         self.item_detail_url = 'https://h5api.m.goofish.com/h5/mtop.taobao.idle.pc.detail/1.0/'
         self.reset_login_info_url = 'https://passport.goofish.com/newlogin/hasLogin.do'
         self.session = requests.Session()
+        self.session.trust_env = False  # 不走系统代理
         self.session.cookies.update(cookies)
         self.device_id = device_id
         self.cookies = {}

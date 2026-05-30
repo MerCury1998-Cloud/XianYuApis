@@ -18,49 +18,49 @@ from message import Message, make_text, make_image
 LLM_API_KEY = 'sk-32ff2a5953fbb4d96a26bdc778bfd263'
 LLM_BASE_URL = 'https://v2.aicodee.com/v1'
 LLM_MODEL = 'MiniMax-M2.7-highspeed'
-LLM_SYSTEM_PROMPT = '''【Switch 游戏机闲鱼自动客服 - 价格信息】
+LLM_SYSTEM_PROMPT = '''【Switch 游戏机价格表】
 
-你是Switch游戏机卖家的闲鱼AI客服。回答客户问题时，请参考以下价格信息：
+你是闲鱼客服，我们这里主要经营Switch游戏机。回答客户问题时，请参考以下价格：
 
 ■ Switch 普通版 日/港版
-  - 正版：拿货价1100元，建议零售价1170元
-  - 128G 预装10款游戏：拿货价1250元，建议零售价1320元
-  - 256G 预装25款游戏：拿货价1350元，建议零售价1420元
-  - 400G 预装40款游戏：拿货价1450元，建议零售价1520元
-  - 512G 预装50款游戏：拿货价1600元，建议零售价1670元
-  - 1T 预装100款游戏：拿货价2200元，建议零售价2270元
+  - 正版：1170元
+  - 128G 预装10款游戏：1320元
+  - 256G 预装25款游戏：1420元
+  - 400G 预装40款游戏：1520元
+  - 512G 预装50款游戏：1670元
+  - 1T 预装100款游戏：2270元
 
 ■ Switch 续航版 国行版
-  - 正版：拿货价1200元，建议零售价1270元
-  - 128G 预装10款游戏：拿货价1350元，建议零售价1420元
-  - 256G 预装25款游戏：拿货价1450元，建议零售价1520元
-  - 400G 预装40款游戏：拿货价1550元，建议零售价1620元
-  - 512G 预装50款游戏：拿货价1700元，建议零售价1770元
-  - 1T 预装100款游戏：拿货价2300元，建议零售价2370元
+  - 正版：1270元
+  - 128G 预装10款游戏：1420元
+  - 256G 预装25款游戏：1520元
+  - 400G 预装40款游戏：1620元
+  - 512G 预装50款游戏：1770元
+  - 1T 预装100款游戏：2370元
 
 ■ Switch 续航版 日/港版
-  - 正版：拿货价1300元，建议零售价1370元
-  - 128G 预装10款游戏：拿货价1450元，建议零售价1520元
-  - 256G 预装25款游戏：拿货价1550元，建议零售价1620元
-  - 400G 预装40款游戏：拿货价1650元，建议零售价1720元
-  - 512G 预装50款游戏：拿货价1800元，建议零售价1870元
-  - 1T 预装100款游戏：拿货价2400元，建议零售价2470元
+  - 正版：1370元
+  - 128G 预装10款游戏：1520元
+  - 256G 预装25款游戏：1620元
+  - 400G 预装40款游戏：1720元
+  - 512G 预装50款游戏：1870元
+  - 1T 预装100款游戏：2470元
 
 ■ Switch OLED 版 日/港版
-  - 正版：拿货价1600元，建议零售价1670元
-  - 128G 预装10款游戏：拿货价1800元，建议零售价1870元
-  - 256G 预装25款游戏：拿货价1900元，建议零售价1970元
-  - 400G 预装40款游戏：拿货价2000元，建议零售价2070元
-  - 512G 预装50款游戏：拿货价2250元，建议零售价2320元
-  - 1T 预装100款游戏：拿货价2750元，建议零售价2820元
+  - 正版：1670元
+  - 128G 预装10款游戏：1870元
+  - 256G 预装25款游戏：1970元
+  - 400G 预装40款游戏：2070元
+  - 512G 预装50款游戏：2320元
+  - 1T 预装100款游戏：2820元
 
 ■ Switch OLED 限定版 日/港版
-  - 正版：拿货价1700元，建议零售价1770元
-  - 128G 预装10款游戏：拿货价1900元，建议零售价1970元
-  - 256G 预装25款游戏：拿货价2000元，建议零售价2070元
-  - 400G 预装40款游戏：拿货价2100元，建议零售价2170元
-  - 512G 预装50款游戏：拿货价2250元，建议零售价2320元
-  - 1T 预装100款游戏：拿货价2850元，建议零售价2920元
+  - 正版：1770元
+  - 128G 预装10款游戏：1970元
+  - 256G 预装25款游戏：2070元
+  - 400G 预装40款游戏：2170元
+  - 512G 预装50款游戏：2320元
+  - 1T 预装100款游戏：2920元
 
 ■ 配件价格
   - 99新：150元
@@ -79,11 +79,16 @@ LLM_SYSTEM_PROMPT = '''【Switch 游戏机闲鱼自动客服 - 价格信息】
 - 闲鱼禁止词：破解、动森、动物之森、生化危机、微信等，回复时避免使用这些词汇
 
 回答要求：
-- 用亲切、热情的语气回答客户问题
-- 回答要简短直接
-- 如果客户询价，根据上面的价格表给出建议零售价
+- 用朋友聊天的语气，随意简短，不要过度热情假客气
+- 回答要简短直接，不要啰嗦
+- 如果客户询价，根据上面的价格表直接报价
 - 如果客户问及配置差异，如实介绍
-- 不要使用表情符号'''
+- 如果客人问"机器哪年的"、"哪年的"、"年份"这种泛泛的问题，只准说"OLED款是25年的哦~"，禁止多说任何其他内容
+- 如果客人明确问"普通款哪年的"/"普通版哪年的"，回答"普通款是19年的哦"
+- 如果客人明确问"续航款哪年的"/"续航版哪年的"，回答"续航款是22/23年的哦"
+- 如果客人说转人工、人工之类的，回复"好的，稍等帮您联系~"然后发飞书通知我
+- 用俏皮的语气聊天，可以加颜文字和emoji，比如喵~ ^_^ 之类的
+- 不用刻意避开表情符号和淘宝味称呼'''
 
 # ===== 飞书通知配置 =====
 FEISHU_WEBHOOK_URL = 'https://open.feishu.cn/open-apis/bot/v2/hook/52fa6601-ac5b-4a04-9a34-0ca1033e3237'
@@ -93,13 +98,16 @@ def send_feishu_notification(title: str, content: str):
     """发送飞书机器人通知"""
     try:
         import requests
+        # 禁用代理访问飞书
+        session = requests.Session()
+        session.trust_env = False
         msg = {
             "msg_type": "text",
             "content": {
                 "text": f"{title}\n{content}"
             }
         }
-        resp = requests.post(FEISHU_WEBHOOK_URL, json=msg, timeout=10)
+        resp = session.post(FEISHU_WEBHOOK_URL, json=msg, timeout=10)
         if resp.status_code == 200:
             logger.info("飞书通知发送成功")
         else:
@@ -134,6 +142,7 @@ class XianyuLive:
         self.device_id = generate_device_id(self.myid)
         self.xianyu = XianyuApis(self.cookies, self.device_id)
         self.ws = None
+        self.paused_until = 0.0  # 暂停自动回复的时间戳（0 = 未暂停）
 
     async def list_all_conversations(self, cid):
         headers = {
@@ -364,7 +373,10 @@ class XianyuLive:
     def user_alive(self):
         while True:
             time.sleep(600)
-            self.xianyu.refresh_token()
+            try:
+                self.xianyu.refresh_token()
+            except Exception as e:
+                logger.error(f'token 刷新失败（10分钟后重试）: {e}')
 
     async def main(self):
         try:
@@ -455,6 +467,26 @@ class XianyuLive:
                 cid = message["1"]["2"]
                 cid = cid.split('@')[0]
 
+                # 检测"我来啦"命令 → 暂停自动回复 10 分钟
+                if '我来啦' in send_message:
+                    self.paused_until = time.time() + 600
+                    now = time.strftime('%Y-%m-%d %H:%M:%S')
+                    pause_msg = (
+                        f'时间：{now}\n'
+                        f'你说了"我来啦"，AI自动回复已暂停10分钟\n'
+                        f'将在 {time.strftime("%H:%M", time.localtime(time.time() + 600))} 自动恢复'
+                    )
+                    send_feishu_notification('⏸ AI自动回复已暂停', pause_msg)
+                    logger.info(f'AI回复暂停 - 收到"我来啦"')
+                    return
+
+                # 如果在暂停期间，跳过 LLM 回复
+                if self.paused_until > time.time():
+                    remaining = int(self.paused_until - time.time())
+                    logger.info(f'AI回复暂停中（剩余{remaining}秒），跳过回复')
+                    return
+                    return
+
                 # 检测下单意向
                 if check_order_intent(send_message):
                     now = time.strftime('%Y-%m-%d %H:%M:%S')
@@ -467,6 +499,19 @@ class XianyuLive:
                     )
                     send_feishu_notification('💰 客户有购买意向', order_msg)
                     logger.info(f'下单意向已通知飞书 - 用户: {send_user_name}')
+
+                # 检测转人工
+                if any(kw in send_message for kw in ['转人工', '人工', '客服', '要真人', '真人工']):
+                    now = time.strftime('%Y-%m-%d %H:%M:%S')
+                    transfer_msg = (
+                        f'用户：{send_user_name}\n'
+                        f'用户ID：{send_user_id}\n'
+                        f'时间：{now}\n'
+                        f'消息：{send_message}\n\n'
+                        f'请尽快回复处理！'
+                    )
+                    send_feishu_notification('👤 客户要求转人工', transfer_msg)
+                    logger.info(f'转人工已通知飞书 - 用户: {send_user_name}')
 
                 # 调用 LLM 生成回复
                 reply = await self.call_llm(send_message)
